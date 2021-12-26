@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -20,7 +21,7 @@ namespace AvaloniaClock
             this.Content = clockPanel;
 
             DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Interval = TimeSpan.FromMilliseconds(16);
             timer.Tick += (s, e) => 
             {
                 clockPanel.InvalidateVisual();
@@ -42,9 +43,9 @@ namespace AvaloniaClock
 
             int margin = 10;
 
-            var hour = DateTime.Now.Hour;
-            var minute = DateTime.Now.Minute;
-            var second = DateTime.Now.Second;
+            var hour = DateTime.Now.Hour + DateTime.Now.Minute / 60.0;
+            var minute = DateTime.Now.Minute + DateTime.Now.Second / 60.0;
+            var second = DateTime.Now.Second + DateTime.Now.Millisecond / 1000.0;
 
             context.FillRectangle(
                 Brushes.Black,
@@ -52,11 +53,11 @@ namespace AvaloniaClock
 
             Point center = new Point(Bounds.Width / 2, Bounds.Height / 2);
 
-            for (int i =0; i < 12; i++)
+            for (int i = 0; i < 12; i++)
             {
                 Point tick = new Point(
-                    center.X + (Bounds.Width / 2 - margin) * Math.Sin(i * Math.PI / 6),
-                    center.Y - (Bounds.Height / 2 - margin) * Math.Cos(i * Math.PI / 6));
+                    center.X + (Bounds.Width / 2 - margin) * Math.Sin(i * 2 * Math.PI / 12),
+                    center.Y - (Bounds.Height / 2 - margin) * Math.Cos(i * 2 * Math.PI / 12));
 
                 context.DrawRectangle(
                     Brushes.White,
@@ -65,14 +66,14 @@ namespace AvaloniaClock
             }
 
             Point hourHand = new Point(
-                center.X + (Bounds.Width / 3 - margin) * Math.Sin(hour * Math.PI / 6),
-                center.Y - (Bounds.Height / 3 - margin) * Math.Cos(hour * Math.PI / 6));
+                center.X + (Bounds.Width / 3 - margin) * Math.Sin(hour * 2 * Math.PI / 12),
+                center.Y - (Bounds.Height / 3 - margin) * Math.Cos(hour * 2 * Math.PI / 12));
             Point minuteHand = new Point(
-                center.X + (Bounds.Width / 2- margin) * Math.Sin(minute * Math.PI / 30),
-                center.Y - (Bounds.Height / 2- margin) * Math.Cos(minute * Math.PI / 30));
+                center.X + (Bounds.Width / 2- margin) * Math.Sin(minute * 2 * Math.PI / 60),
+                center.Y - (Bounds.Height / 2- margin) * Math.Cos(minute * 2 * Math.PI / 60));
             Point secondHand = new Point(
-                center.X + (Bounds.Width / 2- margin) * Math.Sin(second * Math.PI / 30),
-                center.Y - (Bounds.Height / 2- margin) * Math.Cos(second * Math.PI / 30));
+                center.X + (Bounds.Width / 2- margin) * Math.Sin(second * 2 * Math.PI / 60),
+                center.Y - (Bounds.Height / 2- margin) * Math.Cos(second * 2 * Math.PI / 60));
 
             context.DrawLine(
                 new Pen(Brushes.White, 5),
@@ -88,17 +89,13 @@ namespace AvaloniaClock
                 new Pen(Brushes.Red, 1),
                 center,
                 secondHand);
-
-            /*context.DrawText(
-                Brushes.White,
-                new Point(0, 0),
-                new FormattedText(
-                    $"{hour}:{minute}:{second}",
-                    new Typeface("Arial"),
-                    36,
-                    TextAlignment.Left,
-                    TextWrapping.NoWrap,
-                    Size.Infinity));*/
+        }
+    }
+    public static class ExtensionMethods
+    {
+        public static double Map (this double value, double fromSource, double toSource, double fromTarget, double toTarget)
+        {
+            return (value - fromSource) / (toSource - fromSource) * (toTarget - fromTarget) + fromTarget;
         }
     }
 }
